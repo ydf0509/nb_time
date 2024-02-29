@@ -47,6 +47,11 @@ Nbtime 内置属性 datetime对象,兼容性好
 >>> NbTime().shift(hours=1).shift(days=3)
 <NbTime [2024-03-03 19:02:49 +0800]>
 ```
+NbTime入参本身支持无限嵌套NbTime对象
+```
+NbTime(NbTime(NbTime(NbTime())))
+<NbTime [2024-02-29 18:39:09]>
+```
 
 # 3 NbTime 时区设置
 
