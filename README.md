@@ -51,11 +51,24 @@ pip install nb_time
 >>> NbTime().shift(hours=1,minutes=10).shift(days=3)
 <NbTime [2024-03-03 19:02:49 +0800]>
 ```
+
 NbTime入参本身支持无限嵌套NbTime对象
 ```
 NbTime(NbTime(NbTime(NbTime())))
 <NbTime [2024-02-29 18:39:09]>
+
+为什么 NbTime支持入参是自身类型,例如你可以方便的转时区和转字符串格式化
+例如0时区的2024-02-29 18:40:34,你要转化成8时区的带毫秒带时区的时间字符串,
+
+print(
+        NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_WITH_ZONE),
+               time_zone='UTC+8', datetime_formatter=NbTime.FORMATTER_MILLISECOND).datetime_str
+    )
+结果是 2024-02-29 15:40:34.000000 +0800 
+
+
 ```
+
 
 # 3 NbTime 时区设置
 
