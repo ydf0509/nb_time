@@ -46,9 +46,9 @@ pip install nb_time
 
 # 3 NbTime 链式计算时间
 
-求3天1小时候的时间
+求3天1小时10分钟后的时间,入参支持正数和负数
 ```
->>> NbTime().shift(hours=1).shift(days=3)
+>>> NbTime().shift(hours=1,minutes=10).shift(days=3)
 <NbTime [2024-03-03 19:02:49 +0800]>
 ```
 NbTime入参本身支持无限嵌套NbTime对象
@@ -152,8 +152,8 @@ get_str_by_specify_formatter 方法转化成任意字符串格式
 ```
 shift 是计算生成新的NbTime对象,支持无限连续链式操作
 
-求3天1小时后的时间.
->>> NbTime().shift(hours=1).shift(days=3)
+求3天1小时10分钟后的时间,入参支持正数和负数
+>>> NbTime().shift(hours=1,minutes=10).shift(days=3)
 <NbTime [2024-03-03 19:02:49 +0800]>
 ```
 
