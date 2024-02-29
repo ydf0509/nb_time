@@ -17,7 +17,7 @@ class NbTime:
     初始化能够接受的变量类型丰富，可以传入一切类型的时间变量。
 
     """
-    FORMATTER_DATETIME = "%Y-%m-%d %H:%M:%S %z"  # 2023-07-03 16:20:21 +0800 ,带时区的可以正确转化到时间戳，没有带时区的字符串，在strptime时候，无法准确转化到时区。
+    FORMATTER_DATETIME = "%Y-%m-%d %H:%M:%S %z"  # 2023-07-03 16:20:21 +0800 ,这种字符串格式的时间清晰明了没有时区的歧义.
     FORMATTER_DATETIME_WITH_ZONE = "%Y-%m-%d %H:%M:%S %z"
     FORMATTER_DATETIME_NO_ZONE = "%Y-%m-%d %H:%M:%S"
     FORMATTER_MILLISECOND = "%Y-%m-%d %H:%M:%S.%f %z"
@@ -43,8 +43,9 @@ class NbTime:
     @staticmethod
     @functools.lru_cache()
     def get_localzone_name() -> str:
-        print('获取系统时区')
-        return get_localzone().zone
+        zone = get_localzone().zone
+        # print(f'get the system time zone is "{zone}"')
+        return zone
 
     def __init__(self, datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime'] = None,
                  datetime_formatter: str = None,
@@ -176,20 +177,27 @@ class NbTime:
     def timestamp(self) -> float:
         return self.datetime_obj.timestamp()
 
+    @property
+    def timestamp_millisecond(self) -> float:
+        return self.datetime_obj.timestamp() * 1000
+
     def is_greater_than_now(self) -> bool:
         return self.timestamp > time.time()
 
     def __str__(self) -> str:
         return f'<NbTime [{self.datetime_str}]>'
 
+    def __repr__(self) -> str:
+        return f'<NbTime [{self.datetime_str}]>'
+
     def __call__(self) -> datetime.datetime:
         return self.datetime_obj
 
-    def shift(self, seconds=0, minutes=0, hours=0, days=0, weeks=0, ):
+    def shift(self, seconds=0, minutes=0, hours=0, days=0, weeks=0, ) -> 'NbTime':
         seconds_delta = seconds + minutes * 60 + hours * 3600 + days * 86400 + weeks * 86400 * 7
         return self.__class__(self.timestamp + seconds_delta, **self.init_params)
 
-    def to_tz(self, time_zone: str):
+    def to_tz(self, time_zone: str) -> 'NbTime':
         init_params = copy.copy(self.init_params)
         init_params['time_zone'] = time_zone
         return self.__class__(self.timestamp, **init_params)
@@ -231,9 +239,7 @@ if __name__ == '__main__':
     NbTime(1557113661.0)()
     """
 
-    local_tz = get_localzone()
-
-    print(local_tz, type(local_tz))
+    print(NbTime.get_localzone_name())
 
     #
     # print(NbTime(time_zone='UTC+8').today_zero_timestamp)
@@ -242,17 +248,18 @@ if __name__ == '__main__':
 
     # print(NbTime.get_timezone_offset('Asia/Shanghai'))
     NbTime.set_default_formatter(NbTime.FORMATTER_MILLISECOND)
-    # NbTime.set_default_time_zone('UTC+7')
+    NbTime.set_default_time_zone('UTC+8')
 
     # print(NbTime('2023-05-06 12:12:12'))
     print(NbTime())
-    print(NbTime())
-
+    print(NbTime(datetime.datetime.now())) # 和上面等效
+    print(NbTime(1709192429))
     print(NbTime('2024-02-26 15:58:21',datetime_formatter=NbTime.FORMATTER_DATETIME,time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8'))
-    print(NbTime(datetime.datetime.now()))
+
+
     print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
     print(NbTime().shift(hours=1).shift(days=3))
-    print(NbTime(datetime_formatter=NbTime.FORMATTER_MILLISECOND).to_tz(time_zone='UTC+7').to_tz(time_zone='UTC+9'))
+    print(NbTime(datetime_formatter=NbTime.FORMATTER_MILLISECOND).to_tz(time_zone='UTC+8').to_tz(time_zone='UTC+0'))
 
     print(NbTime.get_timezone_offset(NbTime.get_localzone_name()).total_seconds())
 
