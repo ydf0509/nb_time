@@ -270,8 +270,9 @@ if __name__ == '__main__':
     print(NbTime.get_localzone_name())
 
     print(NbTime(time_zone='UTC+8').today_zero_timestamp)
-    print(NbTime(time_zone='UTC+8').datetime_obj)
+    print(NbTime(time_zone='UTC+7').datetime_obj)
     print(NbTime(time_zone='UTC+8').datetime_str)
+    print(NbTime(time_zone='UTC+7').time_zone_obj)
 
     print(NbTime.get_timezone_offset('Asia/Shanghai'))
     NbTime.set_default_formatter(NbTime.FORMATTER_MILLISECOND)
