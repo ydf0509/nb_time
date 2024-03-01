@@ -16,5 +16,3 @@ print(datetime.timezone(datetime.timedelta(hours=7)))
 
 
 # pytz.timezone('Etc/GMT-7')
-
-pytz.timezone('UTC+07:00')

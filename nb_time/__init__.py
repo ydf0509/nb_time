@@ -65,7 +65,10 @@ class NbTime:
         将 time_zone 转成 pytz 可以识别的对应时区
         '''
         self.time_zone_obj = self.build_pytz_timezone(self.time_zone_str)
+        self.datetime_obj = self.build_datetime_obj(datetimex)
+        self.datetime = self.datetime_obj
 
+    def build_datetime_obj(self,datetimex):
         if isinstance(datetimex, str):
             # print(self.datetime_formatter)
             if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
@@ -84,8 +87,9 @@ class NbTime:
             datetime_obj = datetime.datetime.now(tz=self.time_zone_obj)
         else:
             raise ValueError('input parameters is not right')
-        self.datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
-        self.datetime = self.datetime_obj
+        datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
+        return datetime_obj
+
 
     @classmethod
     def add_timezone_to_time_str(cls, datetimex: str, time_zone: str):
@@ -202,6 +206,9 @@ class NbTime:
         init_params['time_zone'] = time_zone
         return self.__class__(self.timestamp, **init_params)
 
+    def clone(self) -> "NbTime":
+        return self.__class__(self.datetime_obj, **self.init_params)
+
     @property
     def today_zero_timestamp(self):
         # zero_ts = time.mktime(datetime.date.today().timetuple())
@@ -239,40 +246,40 @@ if __name__ == '__main__':
     NbTime(1557113661.0)()
     """
 
-    # print(NbTime.get_localzone_name())
+    print(NbTime.get_localzone_name())
 
-    #
-    # print(NbTime(time_zone='UTC+8').today_zero_timestamp)
-    # print(NbTime(time_zone='UTC+8').datetime_obj)
-    # print(NbTime(time_zone='UTC+8').datetime_str)
 
-    # print(NbTime.get_timezone_offset('Asia/Shanghai'))
-    # NbTime.set_default_formatter(NbTime.FORMATTER_MILLISECOND)
-    # NbTime.set_default_time_zone('UTC+8')
-    #
-    # # print(NbTime('2023-05-06 12:12:12'))
-    # print(NbTime())
-    # print(NbTime(datetime.datetime.now()))  # 和上面等效
-    # print(NbTime(1709192429))
-    # print(NbTime('2024-02-26 15:58:21', datetime_formatter=NbTime.FORMATTER_DATETIME,
-    #              time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8'))
-    #
-    # print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
-    # print(NbTime().shift(hours=1).shift(days=3))
-    # print(NbTime(datetime_formatter=NbTime.FORMATTER_MILLISECOND).to_tz(time_zone='UTC+8').to_tz(time_zone='UTC+0'))
-    #
-    # print(NbTime.get_timezone_offset(NbTime.get_localzone_name()).total_seconds())
-    #
-    # print(NbTime(time_zone='UTC+7').today_zero_timestamp)
-    #
-    # print(NbTime.seconds_to_hour_minute_second(450))
-    #
-    # print(NbTime(time_zone=NbTime.TIMEZONE_ASIA_SHANGHAI).datetime.tzinfo)
-    #
-    # print(NbTime(time_zone='UTC+8').time_zone_obj)
-    # print(NbTime(time_zone='UTC+07:00').time_zone_obj)
-    #
-    # print(NbTime(time_zone=datetime.timezone(datetime.timedelta(hours=7))))
+    print(NbTime(time_zone='UTC+8').today_zero_timestamp)
+    print(NbTime(time_zone='UTC+8').datetime_obj)
+    print(NbTime(time_zone='UTC+8').datetime_str)
+
+    print(NbTime.get_timezone_offset('Asia/Shanghai'))
+    NbTime.set_default_formatter(NbTime.FORMATTER_MILLISECOND)
+    NbTime.set_default_time_zone('UTC+8')
+
+    # print(NbTime('2023-05-06 12:12:12'))
+    print(NbTime())
+    print(NbTime(datetime.datetime.now()))  # 和上面等效
+    print(NbTime(1709192429))
+    print(NbTime('2024-02-26 15:58:21', datetime_formatter=NbTime.FORMATTER_DATETIME,
+                 time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8'))
+
+    print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
+    print(NbTime().shift(hours=1).shift(days=3))
+    print(NbTime(datetime_formatter=NbTime.FORMATTER_MILLISECOND).to_tz(time_zone='UTC+8').to_tz(time_zone='UTC+0'))
+
+    print(NbTime.get_timezone_offset(NbTime.get_localzone_name()).total_seconds())
+
+    print(NbTime(time_zone='UTC+7').today_zero_timestamp)
+
+    print(NbTime.seconds_to_hour_minute_second(450))
+
+    print(NbTime(time_zone=NbTime.TIMEZONE_ASIA_SHANGHAI).datetime.tzinfo)
+
+    print(NbTime(time_zone='UTC+8').time_zone_obj)
+    print(NbTime(time_zone='UTC+07:00').time_zone_obj)
+
+    print(NbTime(time_zone=datetime.timezone(datetime.timedelta(hours=7))))
 
     print(
         NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE),
