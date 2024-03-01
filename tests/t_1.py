@@ -13,6 +13,6 @@ import pytz
 print(datetime.timezone(datetime.timedelta(hours=7)))
 
 
-
+datetime.datetime()
 
 # pytz.timezone('Etc/GMT-7')

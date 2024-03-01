@@ -6,6 +6,17 @@ import time
 import datetime
 import pytz
 from tzlocal import get_localzone
+from pydantic import BaseModel
+
+
+class DateTimeValue(BaseModel):
+    year: int
+    month: int
+    day: int
+    hour: int = 0
+    minute: int = 0
+    second: int = 0
+    microsecond: int = 0
 
 
 class NbTime:
@@ -47,12 +58,13 @@ class NbTime:
         # print(f'get the system time zone is "{zone}"')
         return zone
 
-    def __init__(self, datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime'] = None,
+    def __init__(self, datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime',DateTimeValue] = None,
                  datetime_formatter: str = None,
                  time_zone: typing.Union[str, datetime.tzinfo] = None):
         """
         :param datetimex: 接受时间戳  datatime类型 和 时间字符串 和类对象本身四种类型,如果为None，则默认当前时间now。
-        :param time_zone   时区例如 Asia/Shanghai， UTC  UTC+8  GMT+8  Etc/GMT-8 等,也可以是 datetime.timezone(datetime.timedelta(hours=7))东7区
+        :param time_zone  时区例如 Asia/Shanghai， UTC  UTC+8  GMT+8  Etc/GMT-8 等,也可以是 datetime.timezone(datetime.timedelta(hours=7))东7区,
+                          默认是操作系统时区
         """
         init_params = copy.copy(locals())
         init_params.pop('self')
@@ -68,8 +80,10 @@ class NbTime:
         self.datetime_obj = self.build_datetime_obj(datetimex)
         self.datetime = self.datetime_obj
 
-    def build_datetime_obj(self,datetimex):
-        if isinstance(datetimex, str):
+    def build_datetime_obj(self, datetimex):
+        if isinstance(datetimex, DateTimeValue):
+            datetime_obj = datetime.datetime(**datetimex.model_dump(), tzinfo=self.time_zone_obj)
+        elif isinstance(datetimex, str):
             # print(self.datetime_formatter)
             if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
                 datetimex = self.add_timezone_to_time_str(datetimex, self.time_zone_str)
@@ -89,7 +103,6 @@ class NbTime:
             raise ValueError('input parameters is not right')
         datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         return datetime_obj
-
 
     @classmethod
     def add_timezone_to_time_str(cls, datetimex: str, time_zone: str):
@@ -164,7 +177,7 @@ class NbTime:
 
     @property
     def datetime_str(self) -> str:
-        return self.datetime_obj.strftime(self.datetime_formatter)
+        return self.get_str()
 
     @property
     def time_str(self) -> str:
@@ -174,8 +187,8 @@ class NbTime:
     def date_str(self) -> str:
         return self.datetime_obj.strftime(self.FORMATTER_DATE)
 
-    def get_str_by_specify_formatter(self, specify_formatter='%Y-%m-%d %H:%M:%S'):
-        return self.datetime_obj.strftime(specify_formatter)
+    def get_str(self, formatter=None):
+        return self.datetime_obj.strftime(formatter or self.datetime_formatter)
 
     @property
     def timestamp(self) -> float:
@@ -189,7 +202,7 @@ class NbTime:
         return self.timestamp > time.time()
 
     def __str__(self) -> str:
-        return f'<NbTime [{self.datetime_str}]>'
+        return f'<NbTime [{self.get_str()}]>'
 
     def __repr__(self) -> str:
         return f'<NbTime [{self.datetime_str}]>'
@@ -248,7 +261,6 @@ if __name__ == '__main__':
 
     print(NbTime.get_localzone_name())
 
-
     print(NbTime(time_zone='UTC+8').today_zero_timestamp)
     print(NbTime(time_zone='UTC+8').datetime_obj)
     print(NbTime(time_zone='UTC+8').datetime_str)
@@ -263,6 +275,7 @@ if __name__ == '__main__':
     print(NbTime(1709192429))
     print(NbTime('2024-02-26 15:58:21', datetime_formatter=NbTime.FORMATTER_DATETIME,
                  time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8'))
+    print(NbTime(DateTimeValue(year=2022,month=5,day=9,hour=6),time_zone='UTC+7'))
 
     print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
     print(NbTime().shift(hours=1).shift(days=3))
@@ -285,3 +298,6 @@ if __name__ == '__main__':
         NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE),
                time_zone='UTC+8', datetime_formatter=NbTime.FORMATTER_MILLISECOND).datetime_str
     )
+
+    print(NbTime().get_str('%Y%m%d'))
+

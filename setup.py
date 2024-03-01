@@ -15,6 +15,7 @@ extra_requires = {}
 install_requires = [
     'tzlocal',
     'pytz',
+    'pydantic',
 
 ]
 
@@ -24,7 +25,7 @@ install_requires = [
 print(f'nb_time install_requires:{install_requires}')
 setup(
     name='nb_time',  #
-    version="0.3",
+    version="0.4",
     description=(
         'Awesome time conversion handling with support for chaining operations. '
     ),
@@ -67,5 +68,5 @@ python setup.py sdist ; python -m  twine upload dist/nb_time-0.1.tar.gz
 twine upload dist/*
 
 
-python -m pip install nb_log --upgrade -i https://pypi.org/simple   # 及时的方式，不用等待 阿里云 豆瓣 同步
+python -m pip install nb_time --upgrade -i https://pypi.org/simple   # 及时的方式，不用等待 阿里云 豆瓣 同步
 """
