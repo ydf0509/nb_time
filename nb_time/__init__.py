@@ -71,6 +71,7 @@ class NbTime:
             if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
                 datetimex = self.add_timezone_to_time_str(datetimex, self.time_zone_str)
             datetime_obj = datetime.datetime.strptime(datetimex, self.datetime_formatter)
+            datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
                 datetimex += 86400
@@ -274,6 +275,6 @@ if __name__ == '__main__':
     # print(NbTime(time_zone=datetime.timezone(datetime.timedelta(hours=7))))
 
     print(
-        NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_WITH_ZONE),
+        NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE),
                time_zone='UTC+8', datetime_formatter=NbTime.FORMATTER_MILLISECOND).datetime_str
     )
