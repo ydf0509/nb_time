@@ -58,7 +58,8 @@ class NbTime:
         # print(f'get the system time zone is "{zone}"')
         return zone
 
-    def __init__(self, datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime',DateTimeValue] = None,
+    def __init__(self,
+                 datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime', DateTimeValue] = None,
                  datetime_formatter: str = None,
                  time_zone: typing.Union[str, datetime.tzinfo] = None):
         """
@@ -223,19 +224,23 @@ class NbTime:
         return self.__class__(self.datetime_obj, **self.init_params)
 
     @property
-    def today_zero_timestamp(self):
+    def today_zero(self) -> 'NbTime':
+        now = datetime.datetime.now(tz=self.time_zone_obj)
+        today_zero_datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        return self.__class__(today_zero_datetime)
+
+    @property
+    def today_zero_timestamp(self) -> float:
         # zero_ts = time.mktime(datetime.date.today().timetuple())
         # return zero_ts
-        now = datetime.datetime.now()
 
-        # 获取当天零点时间
-        today_start = self.time_zone_obj.localize(datetime.datetime(now.year, now.month, now.day, 0, 0, 0))
-        # today_start =datetime.datetime(now.year, now.month, now.day, 0, 0, 0,tzinfo=self.time_zone_obj)
+        # # 获取当天零点时间
+        # today_start = self.time_zone_obj.localize(datetime.datetime(now.year, now.month, now.day, 0, 0, 0))
+        # # today_start =datetime.datetime(now.year, now.month, now.day, 0, 0, 0,tzinfo=self.time_zone_obj)
+        # # 将当天零点时间转换为时间戳
+        # timestamp = int(today_start.timestamp())
 
-        # 将当天零点时间转换为时间戳
-        timestamp = int(today_start.timestamp())
-
-        return timestamp
+        return self.today_zero.timestamp
 
     @staticmethod
     def seconds_to_hour_minute_second(seconds):
@@ -275,7 +280,7 @@ if __name__ == '__main__':
     print(NbTime(1709192429))
     print(NbTime('2024-02-26 15:58:21', datetime_formatter=NbTime.FORMATTER_DATETIME,
                  time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8'))
-    print(NbTime(DateTimeValue(year=2022,month=5,day=9,hour=6),time_zone='UTC+7'))
+    print(NbTime(DateTimeValue(year=2022, month=5, day=9, hour=6), time_zone='UTC+7'))
 
     print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
     print(NbTime().shift(hours=1).shift(days=3))
@@ -300,4 +305,4 @@ if __name__ == '__main__':
     )
 
     print(NbTime().get_str('%Y%m%d'))
-
+    print(NbTime().today_zero.timestamp)
