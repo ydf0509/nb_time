@@ -218,10 +218,27 @@ class NbTime:
         seconds_delta = seconds + minutes * 60 + hours * 3600 + days * 86400 + weeks * 86400 * 7
         return self._build_nb_time(self.timestamp + seconds_delta, )
 
+    def replace(self,year = None,
+        month = None,
+        day = None,
+        hour = None,
+        minute = None,
+        second = None,
+        microsecond=None,
+        ):
+        kw = copy.copy(locals())
+        kw.pop('self')
+        kw_new = {}
+        for k,v in kw.items():
+            if v is not None:
+                kw_new[k] = v
+        datetime_new = self.datetime_obj.replace(**kw_new)
+        return self._build_nb_time(datetime_new)
+
     def to_tz(self, time_zone: str) -> 'NbTime':
         init_params = copy.copy(self.init_params)
         init_params['time_zone'] = time_zone
-        return self._build_nb_time(self.timestamp, )
+        return self.__class__(self.timestamp,**init_params )
 
     def clone(self) -> "NbTime":
         return self._build_nb_time(self.datetime_obj, )
@@ -311,3 +328,5 @@ if __name__ == '__main__':
     print(NbTime().get_str('%Y%m%d'))
     print(NbTime().today_zero)
     print(NbTime().today_zero_timestamp)
+
+    print(NbTime().replace(day=10,).to_tz('UTC+6'))
