@@ -38,7 +38,7 @@ class NbTime:
     TIMEZONE_UTC = 'UTC+0'
     TIMEZONE_EASTERN_7 = 'UTC+7'
     TIMEZONE_EASTERN_8 = 'UTC+8'  # UTC+08:00
-    TIMEZONE_ASIA_SHANGHAI = 'Asia/Shanghai'
+    TIMEZONE_ASIA_SHANGHAI = 'Asia/Shanghai'  # 就是东八区.
 
     default_formatter: str = None
     default_time_zone: str = None
