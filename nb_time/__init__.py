@@ -81,6 +81,9 @@ class NbTime:
         self.datetime_obj = self.build_datetime_obj(datetimex)
         self.datetime = self.datetime_obj
 
+    def _build_nb_time(self, datetimex):
+        return self.__class__(datetimex, **self.init_params)
+
     def build_datetime_obj(self, datetimex):
         if isinstance(datetimex, DateTimeValue):
             datetime_obj = datetime.datetime(**datetimex.model_dump(), tzinfo=self.time_zone_obj)
@@ -213,21 +216,21 @@ class NbTime:
 
     def shift(self, seconds=0, minutes=0, hours=0, days=0, weeks=0, ) -> 'NbTime':
         seconds_delta = seconds + minutes * 60 + hours * 3600 + days * 86400 + weeks * 86400 * 7
-        return self.__class__(self.timestamp + seconds_delta, **self.init_params)
+        return self._build_nb_time(self.timestamp + seconds_delta, )
 
     def to_tz(self, time_zone: str) -> 'NbTime':
         init_params = copy.copy(self.init_params)
         init_params['time_zone'] = time_zone
-        return self.__class__(self.timestamp, **init_params)
+        return self._build_nb_time(self.timestamp, )
 
     def clone(self) -> "NbTime":
-        return self.__class__(self.datetime_obj, **self.init_params)
+        return self._build_nb_time(self.datetime_obj, )
 
     @property
     def today_zero(self) -> 'NbTime':
         now = datetime.datetime.now(tz=self.time_zone_obj)
         today_zero_datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        return self.__class__(today_zero_datetime)
+        return self._build_nb_time(today_zero_datetime, )
 
     @property
     def today_zero_timestamp(self) -> float:
@@ -305,4 +308,5 @@ if __name__ == '__main__':
     )
 
     print(NbTime().get_str('%Y%m%d'))
-    print(NbTime().today_zero.timestamp)
+    print(NbTime().today_zero)
+    print(NbTime().today_zero_timestamp)
