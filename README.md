@@ -61,6 +61,13 @@ pip install nb_time
 <NbTime [2024-03-03 19:02:49 +0800]>
 ```
 
+求当前时间1天之前的时间戳
+```commandline
+>>> NbTime().shift(days=-1).timestamp
+1709290123.409756
+
+```
+
 NbTime入参本身支持无限嵌套NbTime对象
 ```
 NbTime(NbTime(NbTime(NbTime())))

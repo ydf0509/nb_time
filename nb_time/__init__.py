@@ -299,8 +299,8 @@ if __name__ == '__main__':
     print(NbTime())
     print(NbTime(datetime.datetime.now()))  # 和上面等效
     print(NbTime(1709192429))
-    print(NbTime('2024-02-26 15:58:21', datetime_formatter=NbTime.FORMATTER_DATETIME,
-                 time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8'))
+    print(NbTime('2024-02-26 15:58:21', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE,
+                 time_zone=NbTime.TIMEZONE_EASTERN_7).datetime)
     print(NbTime(DateTimeValue(year=2022, month=5, day=9, hour=6), time_zone='UTC+7'))
 
     print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
