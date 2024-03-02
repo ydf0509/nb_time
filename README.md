@@ -55,7 +55,8 @@ pip install nb_time
 
 # 3 NbTime 链式计算时间
 
-NbTime().shift方法返回的对象仍然是Nbtime类型，Nbtime对象本身具有很多好用的属性和方法，所以使用NbTime作为时间转化的中转对象，比使用datetime作为中转对象方便使用很多。
+NbTime().shift方法返回的对象仍然是Nbtime类型。
+因为Nbtime对象本身具有很多好用的属性和方法，所以使用NbTime作为时间转化的中转对象，比使用datetime作为中转对象方便使用很多。
 
 
 求3天1小时10分钟后的时间,入参支持正数和负数
