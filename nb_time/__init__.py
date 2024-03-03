@@ -37,7 +37,8 @@ class NbTime:
 
     TIMEZONE_UTC = 'UTC+0'
     TIMEZONE_EASTERN_7 = 'UTC+7'
-    TIMEZONE_EASTERN_8 = 'UTC+8'  # UTC+08:00
+    TIMEZONE_EASTERN_8 = 'UTC+8'  # UTC+08:00 这是东八区
+    TIMEZONE_E8 = 'Etc/GMT-8' # 这个也是东八区，这个Etc/GMT是pytz的支持的格式。
     TIMEZONE_ASIA_SHANGHAI = 'Asia/Shanghai'  # 就是东八区.
 
     default_formatter: str = None
@@ -99,13 +100,13 @@ class NbTime:
             datetime_obj = datetime.datetime.fromtimestamp(datetimex, tz=self.time_zone_obj)  # 时间戳0在windows会出错。
         elif isinstance(datetimex, datetime.datetime):
             datetime_obj = datetimex
+            datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         elif isinstance(datetimex, NbTime):
             datetime_obj = datetimex.datetime_obj
         elif datetimex is None:
             datetime_obj = datetime.datetime.now(tz=self.time_zone_obj)
         else:
             raise ValueError('input parameters is not right')
-        datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         return datetime_obj
 
     @classmethod
