@@ -10,6 +10,9 @@ NbTime 支持无限链式操作来处理时间,
 NbTime 入参支持字符串 时间戳 datetime对象 NbTime对象自身
 NbTime 非常轻松支持时区转化
 Nbtime 内置属性 datetime对象,兼容性好
+
+NbTime操作时间,远远暴击使用datetime和三方arrow包,
+远远暴击用户在 utils.time_utils.py文件中写几百个孤立的面向过程操作时间的函数.
 ```
 
 ## 1.1 安装 
@@ -44,7 +47,7 @@ pip install nb_time
 <NbTime [2024-02-26 16:58:21 +0800]>
 ```
 
-# 2.5 NbTime 传参 DateTimeValue类型对象
+## 2.5 NbTime 传参 DateTimeValue类型对象
 ```
 >>> from nb_time import DateTimeValue
 >>> NbTime(DateTimeValue(year=2022,month=5,day=9,hour=6),time_zone='UTC+7')
@@ -52,6 +55,21 @@ pip install nb_time
 
 ```
 
+## 2.6 NbTime传参 NbTime对象
+
+NbTime入参本身支持无限嵌套NbTime对象
+```
+NbTime(NbTime(NbTime(NbTime())))
+<NbTime [2024-02-29 18:39:09]>
+
+
+为什么 NbTime支持入参是自身类型,例如你可以方便的转时区和转字符串格式化
+例如0时区的2024-02-29 07:40:34,你要转化成8时区的带毫秒带时区的时间字符串,
+>>> from nb_time import NbTime                                                                                                    
+>>> NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE),
+...                time_zone='UTC+8', datetime_formatter=NbTime.FORMATTER_MILLISECOND).datetime_str
+'2024-02-29 15:40:34.000000 +0800'
+```
 
 # 3 NbTime 链式计算时间
 
@@ -72,21 +90,10 @@ NbTime().shift方法返回的对象仍然是Nbtime类型。
 
 ```
 
-NbTime入参本身支持无限嵌套NbTime对象
-```
-NbTime(NbTime(NbTime(NbTime())))
-<NbTime [2024-02-29 18:39:09]>
 
 
-为什么 NbTime支持入参是自身类型,例如你可以方便的转时区和转字符串格式化
-例如0时区的2024-02-29 07:40:34,你要转化成8时区的带毫秒带时区的时间字符串,
->>> from nb_time import NbTime                                                                                                    
->>> NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE),
-...                time_zone='UTC+8', datetime_formatter=NbTime.FORMATTER_MILLISECOND).datetime_str
-'2024-02-29 15:40:34.000000 +0800'
 
 
-```
 
 
 # 3 NbTime 时区设置
