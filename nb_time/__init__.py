@@ -61,6 +61,7 @@ class NbTime:
 
     def __init__(self,
                  datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime', DateTimeValue] = None,
+                 *,
                  datetime_formatter: str = None,
                  time_zone: typing.Union[str, datetime.tzinfo] = None):
         """
