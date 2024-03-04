@@ -103,6 +103,7 @@ class NbTime:
             datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         elif isinstance(datetimex, NbTime):
             datetime_obj = datetimex.datetime_obj
+            datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         elif datetimex is None:
             datetime_obj = datetime.datetime.now(tz=self.time_zone_obj)
         else:
