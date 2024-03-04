@@ -38,7 +38,7 @@ class NbTime:
     TIMEZONE_UTC = 'UTC+0'
     TIMEZONE_EASTERN_7 = 'UTC+7'
     TIMEZONE_EASTERN_8 = 'UTC+8'  # UTC+08:00 这是东八区
-    TIMEZONE_E8 = 'Etc/GMT-8' # 这个也是东八区，这个Etc/GMT是标准的pytz的支持的格式。
+    TIMEZONE_E8 = 'Etc/GMT-8'  # 这个也是东八区，这个Etc/GMT是标准的pytz的支持的格式。
     TIMEZONE_ASIA_SHANGHAI = 'Asia/Shanghai'  # 就是东八区.
 
     default_formatter: str = None
@@ -207,6 +207,15 @@ class NbTime:
     def is_greater_than_now(self) -> bool:
         return self.timestamp > time.time()
 
+    def __lt__(self, other: 'NbTime'):
+        return self.timestamp < other.timestamp
+
+    def __gt__(self, other: 'NbTime'):
+        return self.timestamp > other.timestamp
+
+    def __eq__(self, other: 'NbTime'):
+        return self.timestamp == other.timestamp
+
     def __str__(self) -> str:
         return f'<NbTime [{self.get_str()}]>'
 
@@ -216,22 +225,28 @@ class NbTime:
     def __call__(self) -> datetime.datetime:
         return self.datetime_obj
 
+    def clone(self) -> "NbTime":
+        return self._build_nb_time(self.datetime_obj, )
+
+    def __copy__(self):
+        return self.clone()
+
     def shift(self, seconds=0, minutes=0, hours=0, days=0, weeks=0, ) -> 'NbTime':
         seconds_delta = seconds + minutes * 60 + hours * 3600 + days * 86400 + weeks * 86400 * 7
         return self._build_nb_time(self.timestamp + seconds_delta, )
 
-    def replace(self,year = None,
-        month = None,
-        day = None,
-        hour = None,
-        minute = None,
-        second = None,
-        microsecond=None,
-        ):
+    def replace(self, year=None,
+                month=None,
+                day=None,
+                hour=None,
+                minute=None,
+                second=None,
+                microsecond=None,
+                ):
         kw = copy.copy(locals())
         kw.pop('self')
         kw_new = {}
-        for k,v in kw.items():
+        for k, v in kw.items():
             if v is not None:
                 kw_new[k] = v
         datetime_new = self.datetime_obj.replace(**kw_new)
@@ -240,10 +255,7 @@ class NbTime:
     def to_tz(self, time_zone: str) -> 'NbTime':
         init_params = copy.copy(self.init_params)
         init_params['time_zone'] = time_zone
-        return self.__class__(self.timestamp,**init_params )
-
-    def clone(self) -> "NbTime":
-        return self._build_nb_time(self.datetime_obj, )
+        return self.__class__(self.timestamp, **init_params)
 
     @property
     def today_zero(self) -> 'NbTime':
@@ -331,4 +343,9 @@ if __name__ == '__main__':
     print(NbTime().today_zero)
     print(NbTime().today_zero_timestamp)
 
-    print(NbTime().replace(day=10,).to_tz('UTC+6'))
+    print(NbTime().replace(day=10, ).to_tz('UTC+6'))
+
+    print(NbTime(1709283094))
+
+    print(NbTime(DateTimeValue(year=2023, month=7, day=5, hour=4, minute=3, second=2, microsecond=1))
+          > NbTime(DateTimeValue(year=2023, month=6, day=6, hour=4, minute=3, second=2, microsecond=1)))
