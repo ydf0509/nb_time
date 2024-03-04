@@ -210,7 +210,7 @@ datetime.datetime(2024, 2, 29, 18, 16, 23, 541415, tzinfo=<DstTzInfo 'Asia/Shang
 >>> NbTime('2024-02-26 15:58:21',datetime_formatter=NbTime.FORMATTER_DATETIME,time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8')
 <NbTime [2024-02-26 16:58:21 +0800]>
 ```
-## NbTime 对象 支持 > < = 比较
+## 6.4 NbTime 对象 支持 > < = 比较
 ```
 NbTime 实现了 __gt__  __lt__  __eq__ 方法,可以直接比较大小
 
