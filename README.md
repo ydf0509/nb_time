@@ -5,7 +5,8 @@
 ```
 NbTime 是oop面向对象开发的爽快的日期时间操作类
 NbTime 支持无限链式操作来处理时间,
-(因为是oop所以易用程度远远的暴击面向过程python工程师写的time_utils.py里面写几百个独立的操作时间的面向过程函数)
+(因为是oop所以易用程度远远的暴击面向过程python工程师写的time_utils.py里面
+写几百个独立的操作时间的面向过程函数)
 
 NbTime 入参支持字符串 时间戳 datetime对象 NbTime对象自身
 NbTime 非常轻松支持时区转化
