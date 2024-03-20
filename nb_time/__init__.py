@@ -5,9 +5,15 @@ import re
 import time
 import datetime
 import pytz
-from tzlocal import get_localzone
 from pydantic import BaseModel
 
+@functools.lru_cache()
+def get_localzone_ignore_version():  # python3.9以上不一样.  tzlocal 版本在不同python版本上自动安装不同版本
+    from tzlocal import get_localzone
+    try:
+        return get_localzone().zone
+    except AttributeError as e:
+        return get_localzone().key
 
 class DateTimeValue(BaseModel):
     year: int
@@ -55,7 +61,7 @@ class NbTime:
     @staticmethod
     @functools.lru_cache()
     def get_localzone_name() -> str:
-        zone = get_localzone().zone
+        zone = get_localzone_ignore_version()
         # print(f'get the system time zone is "{zone}"')
         return zone
 
