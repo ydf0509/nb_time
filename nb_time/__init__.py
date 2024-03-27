@@ -7,6 +7,7 @@ import datetime
 import pytz
 from pydantic import BaseModel
 
+
 @functools.lru_cache()
 def get_localzone_ignore_version():  # python3.9以上不一样.  tzlocal 版本在不同python版本上自动安装不同版本
     from tzlocal import get_localzone
@@ -14,6 +15,7 @@ def get_localzone_ignore_version():  # python3.9以上不一样.  tzlocal 版本
         return get_localzone().zone
     except AttributeError as e:
         return get_localzone().key
+
 
 class DateTimeValue(BaseModel):
     year: int
@@ -295,6 +297,19 @@ class NbTime:
         return "%02d:%02d:%02d" % (h, m, s)
 
 
+class PopularNbTime(NbTime):
+    @property
+    def ago_7_days(self):
+        return self.shift(days=-7)
+
+
+class UtcNbTime(NbTime):
+    default_time_zone = 'UTC'
+
+class ShanghaiNbTime(NbTime):
+    default_time_zone = 'Asia/Shanghai'
+
+
 if __name__ == '__main__':
     import nb_log
 
@@ -357,3 +372,11 @@ if __name__ == '__main__':
 
     print(NbTime(DateTimeValue(year=2023, month=7, day=5, hour=4, minute=3, second=2, microsecond=1))
           > NbTime(DateTimeValue(year=2023, month=6, day=6, hour=4, minute=3, second=2, microsecond=1)))
+
+    print(PopularNbTime().ago_7_days.timestamp_millisecond)
+
+    print(UtcNbTime())
+
+    print(UtcNbTime().today_zero.timestamp_millisecond)
+
+    print(ShanghaiNbTime())
