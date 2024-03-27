@@ -89,7 +89,7 @@ class NbTime:
         self.datetime_obj = self.build_datetime_obj(datetimex)
         self.datetime = self.datetime_obj
 
-    def _build_nb_time(self, datetimex):
+    def _build_nb_time(self, datetimex) -> 'NbTime':
         return self.__class__(datetimex, **self.init_params)
 
     def build_datetime_obj(self, datetimex):
@@ -351,6 +351,7 @@ if __name__ == '__main__':
     print(NbTime().today_zero_timestamp)
 
     print(NbTime().replace(day=10, ).to_tz('UTC+6'))
+    print(NbTime().shift(days=-7).timestamp_millisecond)
 
     print(NbTime(1709283094))
 
