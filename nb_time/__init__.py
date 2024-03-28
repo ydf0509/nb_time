@@ -43,7 +43,7 @@ class NbTime:
     FORMATTER_DATE = "%Y-%m-%d"
     FORMATTER_TIME = "%H:%M:%S"
 
-    TIMEZONE_UTC = 'UTC+0'
+    TIMEZONE_UTC = 'UTC'
     TIMEZONE_EASTERN_7 = 'UTC+7'
     TIMEZONE_EASTERN_8 = 'UTC+8'  # UTC+08:00 这是东八区
     TIMEZONE_E8 = 'Etc/GMT-8'  # 这个也是东八区，这个Etc/GMT是标准的pytz的支持的格式。
@@ -299,15 +299,37 @@ class NbTime:
 
 class PopularNbTime(NbTime):
     @property
+    def ago_1_days(self):
+        return self.shift(days=-1)
+
+    @property
     def ago_7_days(self):
         return self.shift(days=-7)
 
+    @property
+    def ago_30_days(self):
+        return self.shift(days=-30)
+
+    @property
+    def ago_180_days(self):
+        return self.shift(days=-180)
+
+    @property
+    def ago_360_days(self):
+        return self.shift(days=-360)
+
+    @property
+    def ago_720_days(self):
+        return self.shift(days=-720)
+
 
 class UtcNbTime(NbTime):
-    default_time_zone = 'UTC'
+    default_time_zone = NbTime.TIMEZONE_UTC
+
 
 class ShanghaiNbTime(NbTime):
-    default_time_zone = 'Asia/Shanghai'
+    default_time_zone = NbTime.TIMEZONE_ASIA_SHANGHAI
+    default_formatter = NbTime.FORMATTER_DATETIME_NO_ZONE
 
 
 if __name__ == '__main__':

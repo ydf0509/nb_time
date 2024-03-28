@@ -221,7 +221,58 @@ False
 
 ```
 
-# 7 NbTime总结
+# 7.用户自定义继承 NbTime 类
+
+因为 nb_time 是 oop面向对象开发的,所以可以继承,
+如果是面向过程编程,使用模块级 + 函数的方式来编程,先改变模块的某个全局变量或者函数逻辑,只能使用猴子补丁技术,而且模块天然还是个单例,不适合多次猴子补丁
+面向对象就是有优势.
+
+
+## 7.1 例如用户想使用 UTC 0时区,但是不想频繁传递 时区入参,可以使用 nb_time的  自带的UtcNbTime 类,或者用户手写这个类自己继承NbTime
+
+```python
+class UtcNbTime(NbTime):
+    default_time_zone = NbTime.TIMEZONE_UTC
+
+# 使用的时候
+UtcNbTime()   
+```
+
+
+## 7.2 例如 用户想使用上海时区,并且默认使用不带时区的时间字符串格式化
+```python
+class ShanghaiNbTime(NbTime):
+    default_time_zone = NbTime.TIMEZONE_ASIA_SHANGHAI
+    default_formatter = NbTime.FORMATTER_DATETIME_NO_ZONE
+
+# 使用的时候
+ShanghaiNbTime()  
+```
+
+## 7.3 数据分析,常用的时间也可以加上来
+
+```python
+class PopularNbTime(NbTime):
+    @property
+    def ago_1_days(self):
+        return self.shift(days=-1)
+
+    @property
+    def ago_7_days(self):
+        return self.shift(days=-7)
+
+    @property
+    def ago_30_days(self):
+        return self.shift(days=-30)
+
+    @property
+    def ago_180_days(self):
+        return self.shift(days=-180)
+```
+
+
+
+# 8 NbTime总结
 
 ```
 总结就是 NbTime 的入参接受所有类型,NbTime支持链式调用,Nbtime方便支持时区,Nbtime方便操作时间转化,
