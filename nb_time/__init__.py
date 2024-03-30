@@ -226,10 +226,10 @@ class NbTime:
         return self.timestamp == other.timestamp
 
     def __str__(self) -> str:
-        return f'<NbTime [{self.get_str()}]>'
+        return f'<NbTime [{self.datetime_str}] ({self.time_zone_str})>'
 
     def __repr__(self) -> str:
-        return f'<NbTime [{self.datetime_str}]>'
+        return f'<NbTime [{self.datetime_str}] ({self.time_zone_str})>'
 
     def __call__(self) -> datetime.datetime:
         return self.datetime_obj
