@@ -96,7 +96,7 @@ class NbTime:
 
     def build_datetime_obj(self, datetimex):
         if isinstance(datetimex, DateTimeValue):
-            datetime_obj = datetime.datetime(**datetimex.model_dump(), tzinfo=self.time_zone_obj)
+            datetime_obj = datetime.datetime(**datetimex.dict(), tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, str):
             # print(self.datetime_formatter)
             if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
