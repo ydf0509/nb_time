@@ -1,5 +1,6 @@
 import copy
 import functools
+import types
 import typing
 import re
 import time
@@ -71,7 +72,7 @@ class NbTime:
                  datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime', DateTimeValue] = None,
                  *,
                  datetime_formatter: str = None,
-                 time_zone: typing.Union[str, datetime.tzinfo] = None):
+                 time_zone: typing.Union[str, datetime.tzinfo,None] = None):
         """
         :param datetimex: 接受时间戳  datatime类型 和 时间字符串 和类对象本身四种类型,如果为None，则默认当前时间now。
         :param time_zone  时区例如 Asia/Shanghai， UTC  UTC+8  GMT+8  Etc/GMT-8 等,也可以是 datetime.timezone(datetime.timedelta(hours=7))东7区,
@@ -82,7 +83,7 @@ class NbTime:
         init_params.pop('datetimex')
         self.init_params = init_params
 
-        self.time_zone_str = time_zone or self.default_time_zone or self.get_localzone_name()
+        self.time_zone_str = self.get_time_zone_str(time_zone)
         self.datetime_formatter = datetime_formatter or self.default_formatter or self.FORMATTER_DATETIME
         '''
         将 time_zone 转成 pytz 可以识别的对应时区
@@ -93,6 +94,9 @@ class NbTime:
 
     def _build_nb_time(self, datetimex) -> 'NbTime':
         return self.__class__(datetimex, **self.init_params)
+
+    def get_time_zone_str(self,time_zone: typing.Union[str, datetime.tzinfo,None] = None):
+        return time_zone or self.default_time_zone or self.get_localzone_name()
 
     def build_datetime_obj(self, datetimex):
         if isinstance(datetimex, DateTimeValue):
