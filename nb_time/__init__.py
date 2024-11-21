@@ -1,10 +1,13 @@
 import copy
 import functools
+import logging
 import types
 import typing
 import re
 import time
 import datetime
+
+import dateutil.parser
 import pytz
 from pydantic import BaseModel
 
@@ -28,6 +31,9 @@ class DateTimeValue(BaseModel):
     microsecond: int = 0
 
 
+class TimeInParamError(Exception):
+    pass
+
 class NbTime:
     """ 时间转换，支持链式操作，纯面向对象的的。
 
@@ -49,6 +55,7 @@ class NbTime:
     TIMEZONE_EASTERN_8 = 'UTC+8'  # UTC+08:00 这是东八区
     TIMEZONE_E8 = 'Etc/GMT-8'  # 这个也是东八区，这个Etc/GMT是标准的pytz的支持的格式。
     TIMEZONE_ASIA_SHANGHAI = 'Asia/Shanghai'  # 就是东八区.
+    TIMEZONE_TZ_EAST_8 = datetime.timezone(datetime.timedelta(hours=8))
 
     default_formatter: str = None
     default_time_zone: str = None
@@ -68,6 +75,8 @@ class NbTime:
         # print(f'get the system time zone is "{zone}"')
         return zone
 
+    time_zone_str__obj_map = {}
+
     def __init__(self,
                  datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime', DateTimeValue] = None,
                  *,
@@ -78,9 +87,10 @@ class NbTime:
         :param time_zone  时区例如 Asia/Shanghai， UTC  UTC+8  GMT+8  Etc/GMT-8 等,也可以是 datetime.timezone(datetime.timedelta(hours=7))东7区,
                           默认是操作系统时区
         """
-        init_params = copy.copy(locals())
-        init_params.pop('self')
-        init_params.pop('datetimex')
+        # init_params = copy.copy(locals())
+        # init_params.pop('self')
+        # init_params.pop('datetimex')
+        init_params = {'datetime_formatter':datetime_formatter,'time_zone':time_zone}
         self.init_params = init_params
 
         self.time_zone_str = self.get_time_zone_str(time_zone)
@@ -105,11 +115,19 @@ class NbTime:
             # print(self.datetime_formatter)
             if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
                 datetimex = self.add_timezone_to_time_str(datetimex, self.time_zone_str)
-            datetime_obj = datetime.datetime.strptime(datetimex, self.datetime_formatter)
+            try:
+                datetime_obj = datetime.datetime.strptime(datetimex, self.datetime_formatter)
+            except Exception as e:
+                # print(e,type(e))
+                # print(f'尝试使用万能时间字符串解析 {datetimex}')
+                logging.warning(f'parse time str error , {type(e)} , {e} , will try use dateutil.parser.parse Universal time string parsing')
+                datetime_obj = dateutil.parser.parse(datetimex)
             datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
                 datetimex += 86400
+            if datetimex >=10**12:
+                raise TimeInParamError(f'Invalid datetime param: {datetimex}. need seconds,not microseconds') # 需要传入秒，而不是毫秒
             datetime_obj = datetime.datetime.fromtimestamp(datetimex, tz=self.time_zone_obj)  # 时间戳0在windows会出错。
         elif isinstance(datetimex, datetime.datetime):
             datetime_obj = datetimex
@@ -172,6 +190,11 @@ class NbTime:
         """pytz 不支持 GTM+8  UTC+7 这种时区表示方式
         Etc/GMT-8 就是 GMT+8 代表东8区。
         """
+        time_zone0 = time_zone
+        if time_zone0 in cls.time_zone_str__obj_map:
+            # print('zhijie')
+            return cls.time_zone_str__obj_map[time_zone0]
+
         if isinstance(time_zone, datetime.tzinfo):
             return time_zone
         if 'Etc/GMT' in time_zone:
@@ -192,6 +215,7 @@ class NbTime:
         #     pytz_timezone = pytz.timezone(just_timezone + count)
         # else:
         #     pytz_timezone = pytz.timezone(time_zone)
+        cls.time_zone_str__obj_map[time_zone0] = pytz_timezone
         return pytz_timezone
 
     @property
@@ -332,7 +356,8 @@ class UtcNbTime(NbTime):
 
 
 class ShanghaiNbTime(NbTime):
-    default_time_zone = NbTime.TIMEZONE_ASIA_SHANGHAI
+    # default_time_zone = NbTime.TIMEZONE_ASIA_SHANGHAI
+    default_time_zone = NbTime.TIMEZONE_TZ_EAST_8
     default_formatter = NbTime.FORMATTER_DATETIME_NO_ZONE
 
 
@@ -399,6 +424,8 @@ if __name__ == '__main__':
     print(NbTime(DateTimeValue(year=2023, month=7, day=5, hour=4, minute=3, second=2, microsecond=1))
           > NbTime(DateTimeValue(year=2023, month=6, day=6, hour=4, minute=3, second=2, microsecond=1)))
 
+    print(NbTime(1727252278))
+
     print(PopularNbTime().ago_7_days.timestamp_millisecond)
 
     print(UtcNbTime())
@@ -406,3 +433,12 @@ if __name__ == '__main__':
     print(UtcNbTime().today_zero.timestamp_millisecond)
 
     print(ShanghaiNbTime())
+
+    print(NbTime('20230506T010203.886'))
+
+    # print()
+    # for i in range(1000000):
+    #     # ShanghaiNbTime().get_str()
+    #     ShanghaiNbTime()
+    #     # datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+    # print()
