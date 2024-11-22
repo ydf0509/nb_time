@@ -120,7 +120,7 @@ class NbTime:
             except Exception as e:
                 # print(e,type(e))
                 # print(f'尝试使用万能时间字符串解析 {datetimex}')
-                logging.warning(f'parse time str error , {type(e)} , {e} , will try use dateutil.parser.parse Universal time string parsing')
+                logging.warning(f'parse time str error , {type(e)} , {e}  , will try use dateutil.parser.parse Universal time string parsing')
                 datetime_obj = dateutil.parser.parse(datetimex)
             datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, (int, float)):
@@ -434,7 +434,10 @@ if __name__ == '__main__':
 
     print(ShanghaiNbTime())
 
-    print(NbTime('20230506T010203.886'))
+    print(NbTime('20230506T010203.886 +08:00'))
+    print(NbTime('2023-05-06 01:02:03.886'))
+    print(NbTime('2023-05-06T01:02:03.886 +08:00'))
+    print(NbTime('20221206 1:2:3'))
 
     # print()
     # for i in range(1000000):

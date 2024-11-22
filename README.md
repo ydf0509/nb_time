@@ -9,6 +9,7 @@ NbTime 支持无限链式操作来处理时间,
 写几百个独立的操作时间的面向过程函数)
 
 NbTime 入参支持 None 字符串 时间戳 datetime对象 NbTime对象自身
+NbTime 支持将任意格式的时间字符串转成时间对象，无需提前精确指定写 yyyyy-mm-dd HHMMSS 这样的模板。
 NbTime 非常轻松支持时区转化
 Nbtime 内置属性 datetime对象,兼容性好
 
