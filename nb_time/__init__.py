@@ -438,6 +438,7 @@ if __name__ == '__main__':
     print(NbTime('2023-05-06 01:02:03.886'))
     print(NbTime('2023-05-06T01:02:03.886 +08:00'))
     print(NbTime('20221206 1:2:3'))
+    print(NbTime('Fri Jul 19 06:38:27 2024'))
 
     # print()
     # for i in range(1000000):
