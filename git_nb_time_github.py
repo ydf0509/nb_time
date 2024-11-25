@@ -41,7 +41,6 @@ do_cmd('git push origin')
 print(f'spend_time {time.time() - t0}')
 
 if __name__ == '__main__':
-
     time.sleep(1000000)
 
 

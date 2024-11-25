@@ -12,6 +12,8 @@ import pytz
 from pydantic import BaseModel
 
 
+logger = logging.getLogger(__name__)
+
 @functools.lru_cache()
 def get_localzone_ignore_version():  # python3.9以上不一样.  tzlocal 版本在不同python版本上自动安装不同版本
     from tzlocal import get_localzone
@@ -120,7 +122,7 @@ class NbTime:
             except Exception as e:
                 # print(e,type(e))
                 # print(f'尝试使用万能时间字符串解析 {datetimex}')
-                logging.warning(f'parse time str error , {type(e)} , {e}  , will try use  Universal time string parsing')
+                logger.warning(f'parse time str error , {type(e)} , {e}  , will try use  Universal time string parsing')
                 datetime_obj = dateutil.parser.parse(datetimex)
             datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, (int, float)):
