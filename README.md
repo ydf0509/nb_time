@@ -49,6 +49,21 @@ pip install nb_time
 <NbTime [2024-02-26 16:58:21 +0800]>
 ```
 
+## 2.4.b Nbtime 万能自动识别时间字符串模板，可以将所有常见的时间字符串转换成时间对象
+
+Nbtime 万能自动识别时间字符串模板，可以将所有常见的时间字符串转换成时间对象，不需要提前精确的写 yyyy-mm-dd 这样的。
+
+以下例子都能直接转化成时间对象，无视时间字符串格式。
+
+```python
+from nb_time import NbTime
+print(NbTime('20230506T010203.886 +08:00'))
+print(NbTime('2023-05-06 01:02:03.886'))
+print(NbTime('2023-05-06T01:02:03.886 +08:00'))
+print(NbTime('20221206 1:2:3'))
+print(NbTime('Fri Jul 19 06:38:27 2024'))
+```
+
 ## 2.5 NbTime 传参 DateTimeValue类型对象
 ```
 >>> from nb_time import DateTimeValue

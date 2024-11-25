@@ -120,7 +120,7 @@ class NbTime:
             except Exception as e:
                 # print(e,type(e))
                 # print(f'尝试使用万能时间字符串解析 {datetimex}')
-                logging.warning(f'parse time str error , {type(e)} , {e}  , will try use dateutil.parser.parse Universal time string parsing')
+                logging.warning(f'parse time str error , {type(e)} , {e}  , will try use  Universal time string parsing')
                 datetime_obj = dateutil.parser.parse(datetimex)
             datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, (int, float)):
