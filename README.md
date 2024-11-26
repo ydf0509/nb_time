@@ -62,6 +62,13 @@ pip install nb_time
 <NbTime [2024-02-29 15:40:29 +0800]>
 ```
 
+传了大于13位的毫秒时间戳。
+```
+>>> NbTime(1709192429000)
+<NbTime [2024-02-29 15:40:29 +0800]>
+```
+
+
 ## 2.4 NbTime 传参字符串,可以对字符串设置时区,例如把东七区的时间字符串转化成东8区的格式.
 ```
 >>> NbTime('2024-02-26 15:58:21',datetime_formatter=NbTime.FORMATTER_DATETIME,time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8')
