@@ -11,8 +11,8 @@ import dateutil.parser
 import pytz
 from pydantic import BaseModel
 
-
 logger = logging.getLogger(__name__)
+
 
 @functools.lru_cache()
 def get_localzone_ignore_version():  # python3.9以上不一样.  tzlocal 版本在不同python版本上自动安装不同版本
@@ -35,6 +35,7 @@ class DateTimeValue(BaseModel):
 
 class TimeInParamError(Exception):
     pass
+
 
 class NbTime:
     """ 时间转换，支持链式操作，纯面向对象的的。
@@ -83,7 +84,7 @@ class NbTime:
                  datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime', DateTimeValue] = None,
                  *,
                  datetime_formatter: str = None,
-                 time_zone: typing.Union[str, datetime.tzinfo,None] = None):
+                 time_zone: typing.Union[str, datetime.tzinfo, None] = None):
         """
         :param datetimex: 接受时间戳  datatime类型 和 时间字符串 和类对象本身四种类型,如果为None，则默认当前时间now。
         :param time_zone  时区例如 Asia/Shanghai， UTC  UTC+8  GMT+8  Etc/GMT-8 等,也可以是 datetime.timezone(datetime.timedelta(hours=7))东7区,
@@ -92,7 +93,7 @@ class NbTime:
         # init_params = copy.copy(locals())
         # init_params.pop('self')
         # init_params.pop('datetimex')
-        init_params = {'datetime_formatter':datetime_formatter,'time_zone':time_zone}
+        init_params = {'datetime_formatter': datetime_formatter, 'time_zone': time_zone}
         self.init_params = init_params
 
         self.time_zone_str = self.get_time_zone_str(time_zone)
@@ -107,21 +108,19 @@ class NbTime:
     def _build_nb_time(self, datetimex) -> 'NbTime':
         return self.__class__(datetimex, **self.init_params)
 
-    def get_time_zone_str(self,time_zone: typing.Union[str, datetime.tzinfo,None] = None):
+    def get_time_zone_str(self, time_zone: typing.Union[str, datetime.tzinfo, None] = None):
         return time_zone or self.default_time_zone or self.get_localzone_name()
 
-
-    def universal_parse_datetime_str(self,datetime_str):
+    def universal_parse_datetime_str(self, datetime_str):
         try:
             return dateutil.parser.parse(datetime_str)
         except Exception as e:
-            date_string =  datetime_str   #  "2013-05-05 12:30:45 America/Chicago"
+            date_string = datetime_str  # "2013-05-05 12:30:45 America/Chicago"
             date_parts = date_string.split()
             parsed_date = dateutil.parser.parse(date_parts[0] + " " + date_parts[1])
             timezone = dateutil.tz.gettz(date_parts[2])
             datetime_obj = parsed_date.replace(tzinfo=timezone)
             return self._build_nb_time(datetime_obj).datetime_obj
-
 
     def build_datetime_obj(self, datetimex):
         if isinstance(datetimex, DateTimeValue):
@@ -141,8 +140,9 @@ class NbTime:
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
                 datetimex += 86400
-            if datetimex >=10**12:
-                raise TimeInParamError(f'Invalid datetime param: {datetimex}. need seconds,not microseconds') # 需要传入秒，而不是毫秒
+            if datetimex >= 10 ** 12:
+                raise TimeInParamError(
+                    f'Invalid datetime param: {datetimex}. need seconds,not microseconds')  # 需要传入秒，而不是毫秒
             datetime_obj = datetime.datetime.fromtimestamp(datetimex, tz=self.time_zone_obj)  # 时间戳0在windows会出错。
         elif isinstance(datetimex, datetime.datetime):
             datetime_obj = datetimex
