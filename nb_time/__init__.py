@@ -142,8 +142,9 @@ class NbTime:
             if datetimex < 1:
                 datetimex += 86400
             if datetimex >= 10 ** 12:
-                raise TimeInParamError(
-                    f'Invalid datetime param: {datetimex}. need seconds,not microseconds')  # 需要传入秒，而不是毫秒
+                # raise TimeInParamError(
+                #     f'Invalid datetime param: {datetimex}. need seconds,not microseconds')  # 需要传入秒，而不是毫秒
+                datetimex = datetimex /1000.0
             datetime_obj = datetime.datetime.fromtimestamp(datetimex, tz=self.time_zone_obj)  # 时间戳0在windows会出错。
         elif isinstance(datetimex, datetime.datetime):
             datetime_obj = datetimex
@@ -447,7 +448,7 @@ if __name__ == '__main__':
     print(NbTime(DateTimeValue(year=2023, month=7, day=5, hour=4, minute=3, second=2, microsecond=1))
           > NbTime(DateTimeValue(year=2023, month=6, day=6, hour=4, minute=3, second=2, microsecond=1)))
 
-    print(NbTime(1727252278))
+    print(NbTime(1727252278000))
 
     print(PopularNbTime().ago_7_days.timestamp_millisecond)
 
