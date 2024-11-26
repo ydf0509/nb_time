@@ -110,6 +110,19 @@ class NbTime:
     def get_time_zone_str(self,time_zone: typing.Union[str, datetime.tzinfo,None] = None):
         return time_zone or self.default_time_zone or self.get_localzone_name()
 
+
+    def universal_parse_datetime_str(self,datetime_str):
+        try:
+            return dateutil.parser.parse(datetime_str)
+        except Exception as e:
+            date_string =  datetime_str   #  "2013-05-05 12:30:45 America/Chicago"
+            date_parts = date_string.split()
+            parsed_date = dateutil.parser.parse(date_parts[0] + " " + date_parts[1])
+            timezone = dateutil.tz.gettz(date_parts[2])
+            datetime_obj = parsed_date.replace(tzinfo=timezone)
+            return self._build_nb_time(datetime_obj).datetime_obj
+
+
     def build_datetime_obj(self, datetimex):
         if isinstance(datetimex, DateTimeValue):
             datetime_obj = datetime.datetime(**datetimex.dict(), tzinfo=self.time_zone_obj)
@@ -123,7 +136,7 @@ class NbTime:
                 # print(e,type(e))
                 # print(f'尝试使用万能时间字符串解析 {datetimex}')
                 logger.warning(f'parse time str error , {type(e)} , {e}  , will try use  Universal time string parsing')
-                datetime_obj = dateutil.parser.parse(datetimex)
+                datetime_obj = self.universal_parse_datetime_str(datetimex)
             datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
@@ -157,8 +170,15 @@ class NbTime:
             int_timezone = f'-{int_timezone}'
         else:
             int_timezone = f'+{int_timezone}'
-        datetimex += f' {int_timezone}'
+        if not cls._contains_two_or_more_letters(datetimex):
+            datetimex += f' {int_timezone}'
         return datetimex
+
+    @staticmethod
+    def _contains_two_or_more_letters(text):
+        pattern = r"[a-zA-Z]"
+        letters = re.findall(pattern, text)
+        return len(letters) >= 2
 
     @classmethod
     def get_timezone_offset(cls, time_zone: str) -> datetime.timedelta:
@@ -441,6 +461,7 @@ if __name__ == '__main__':
     print(NbTime('2023-05-06T01:02:03.886 +08:00'))
     print(NbTime('20221206 1:2:3'))
     print(NbTime('Fri Jul 19 06:38:27 2024'))
+    print(NbTime('2013-05-05 12:30:45 America/Chicago'))
 
     # print()
     # for i in range(1000000):
