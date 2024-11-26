@@ -95,6 +95,7 @@ class NbTime:
         # init_params.pop('datetimex')
         init_params = {'datetime_formatter': datetime_formatter, 'time_zone': time_zone}
         self.init_params = init_params
+        self.first_param = datetimex
 
         self.time_zone_str = self.get_time_zone_str(time_zone)
         self.datetime_formatter = datetime_formatter or self.default_formatter or self.FORMATTER_DATETIME
