@@ -267,6 +267,21 @@ datetime.datetime(2024, 2, 29, 18, 16, 23, 541415, tzinfo=<DstTzInfo 'Asia/Shang
 >>> NbTime('2024-02-26 15:58:21',datetime_formatter=NbTime.FORMATTER_DATETIME,time_zone=NbTime.TIMEZONE_EASTERN_7).to_tz('UTC+8')
 <NbTime [2024-02-26 16:58:21 +0800]>
 ```
+
+### 6.3.2 两种时区转化写法
+
+例如东7区的2024-02-29 07:40:34转成东八区的时间字符串。
+
+```python
+from nb_time import  NbTime
+
+# NbTime对象无限嵌套传参给NbTime方式
+print(NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+7'), time_zone='UTC+8').datetime_str)
+
+# to_tz 方式
+print(NbTime('2024-02-29 07:40:34', time_zone='UTC+7').to_tz('UTC+8').datetime_str)
+```
+
 ## 6.4 NbTime 对象 支持 > < = 比较
 ```
 NbTime 实现了 __gt__  __lt__  __eq__ 方法,可以直接比较大小
@@ -277,6 +292,8 @@ True
 False
 
 ```
+
+
 
 # 7.用户自定义继承 NbTime 类
 

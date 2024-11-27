@@ -337,6 +337,16 @@ class NbTime:
 
         return self.today_zero.timestamp
 
+    @property
+    def same_day_zero(self)  -> 'NbTime':
+        """
+        获取时间对象对应的当天的该对象时区的0点的 NbTime对象
+        :return:
+        """
+
+        same_day_zero_datetime = self.datetime_obj.replace(hour=0, minute=0, second=0, microsecond=0)
+        return self._build_nb_time(same_day_zero_datetime, )
+
     @staticmethod
     def seconds_to_hour_minute_second(seconds):
         """
@@ -435,6 +445,9 @@ if __name__ == '__main__':
         NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+0', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE),
                time_zone='UTC+8', datetime_formatter=NbTime.FORMATTER_MILLISECOND).datetime_str
     )
+
+    print(NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+7'), time_zone='UTC+8').datetime_str)
+    print(NbTime('2024-02-29 07:40:34', time_zone='UTC+7').to_tz('UTC+8').datetime_str)
 
     print(NbTime().get_str('%Y%m%d'))
     print(NbTime().today_zero)
