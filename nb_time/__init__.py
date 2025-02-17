@@ -75,7 +75,7 @@ class NbTime:
     @functools.lru_cache()
     def get_localzone_name() -> str:
         zone = get_localzone_ignore_version()
-        # print(f'get the system time zone is "{zone}"')
+        print(f'auto get the system time zone is "{zone}"')
         return zone
 
     time_zone_str__obj_map = {}
@@ -137,7 +137,10 @@ class NbTime:
                 # print(f'尝试使用万能时间字符串解析 {datetimex}')
                 logger.warning(f'parse time str error , {type(e)} , {e}  , will try use  Universal time string parsing')
                 datetime_obj = self.universal_parse_datetime_str(datetimex)
-            datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj)
+            if isinstance(self.time_zone_obj,pytz.BaseTzInfo):
+                datetime_obj = self.time_zone_obj.localize(datetime_obj)
+            else:
+                datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj, )
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
                 datetimex += 86400
@@ -226,7 +229,10 @@ class NbTime:
         # print(time_zone)
         time_zone = cls._utc_to_etc(time_zone)
         # print(time_zone)
-        pytz_timezone = pytz.timezone(time_zone)
+        # pytz_timezone_xialinshi = pytz.timezone(time_zone)
+        pytz_timezone =pytz.timezone(time_zone,)
+
+        # print(pytz_timezone)
         # # UTC 负时区对应的 pytz 可以识别的时区
         # burden_timezone = 'Etc/GMT+'
         # # UTC 正时区对应的 pytz 可以识别的时区
