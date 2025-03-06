@@ -6,7 +6,7 @@ import typing
 import re
 import time
 import datetime
-
+from dateutil.relativedelta import relativedelta
 import dateutil.parser
 import pytz
 from pydantic import BaseModel
@@ -137,10 +137,19 @@ class NbTime:
                 # print(f'尝试使用万能时间字符串解析 {datetimex}')
                 logger.warning(f'parse time str error , {type(e)} , {e}  , will try use  Universal time string parsing')
                 datetime_obj = self.universal_parse_datetime_str(datetimex)
-            if isinstance(self.time_zone_obj,pytz.BaseTzInfo):
-                datetime_obj = self.time_zone_obj.localize(datetime_obj)
+            # print(repr(datetime_obj))
+            if datetime_obj.tzinfo is None:
+                if  isinstance(self.time_zone_obj,pytz.BaseTzInfo):
+                    datetime_obj = self.time_zone_obj.localize(datetime_obj, )
+                else:
+                    datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj, )
             else:
-                datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj, )
+                datetime_obj = datetime_obj.astimezone(self.time_zone_obj)
+            # if isinstance(self.time_zone_obj,pytz.BaseTzInfo) and datetime_obj.tzinfo is None:
+            #     datetime_obj = self.time_zone_obj.localize(datetime_obj, )
+            # else:
+            #     datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj, )
+            # print(repr(datetime_obj))
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
                 datetimex += 86400
@@ -298,9 +307,14 @@ class NbTime:
     def __copy__(self):
         return self.clone()
 
-    def shift(self, seconds=0, minutes=0, hours=0, days=0, weeks=0, ) -> 'NbTime':
-        seconds_delta = seconds + minutes * 60 + hours * 3600 + days * 86400 + weeks * 86400 * 7
-        return self._build_nb_time(self.timestamp + seconds_delta, )
+    def shift(self, years=0, months=0, days=0, leapdays=0, weeks=0,
+                 hours=0, minutes=0, seconds=0, microseconds=0, ) -> 'NbTime':
+        relativedeltax = relativedelta(years=years, months=months, days=days, leapdays=leapdays, weeks=weeks,
+                                                    hours=hours, minutes=minutes, seconds=seconds,
+                                                    microseconds=microseconds, )
+        new_date = self.datetime_obj + relativedeltax
+        # seconds_delta = seconds + minutes * 60 + hours * 3600 + days * 86400 + weeks * 86400 * 7
+        return self._build_nb_time(new_date, )
 
     def replace(self, year=None,
                 month=None,
@@ -431,7 +445,7 @@ if __name__ == '__main__':
     print(NbTime(DateTimeValue(year=2022, month=5, day=9, hour=6), time_zone='UTC+7'))
 
     print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
-    print(NbTime().shift(hours=1).shift(days=3))
+    print(NbTime().shift(months=1).shift(hours=-1))
     print(NbTime(datetime_formatter=NbTime.FORMATTER_MILLISECOND).to_tz(time_zone='UTC+8').to_tz(time_zone='UTC+0'))
 
     print(NbTime.get_timezone_offset(NbTime.get_localzone_name()).total_seconds())
@@ -452,6 +466,7 @@ if __name__ == '__main__':
                time_zone='UTC+8', datetime_formatter=NbTime.FORMATTER_MILLISECOND).datetime_str
     )
 
+    print(NbTime('2024-02-29 07:40:34', time_zone='UTC+7'))
     print(NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+7'), time_zone='UTC+8').datetime_str)
     print(NbTime('2024-02-29 07:40:34', time_zone='UTC+7').to_tz('UTC+8').datetime_str)
 

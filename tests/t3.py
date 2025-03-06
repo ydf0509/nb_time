@@ -1,3 +1,5 @@
+import datetime
+
 import nb_log
 from nb_time import NbTime
 
@@ -44,3 +46,18 @@ print(miao.shift(hours=1).datetime_obj)
 #
 # # 计算时间戳差值
 # print(f"Difference in timestamps: {n_timestamp - m_timestamp}")
+
+
+import pytz
+
+sh = pytz.timezone('Asia/Shanghai')
+
+t = datetime.datetime.strptime('23010108', '%y%m%d%H')
+
+print(repr(t))
+
+t2 = t.replace(tzinfo=sh,fold=1)
+
+t3 =sh.localize(t,)
+
+print(repr(t),t,repr(t2),t2,repr(t3),t3)
