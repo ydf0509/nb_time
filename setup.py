@@ -26,7 +26,7 @@ install_requires = [
 print(f'nb_time install_requires:{install_requires}')
 setup(
     name='nb_time',  #
-    version="2.3",
+    version="2.4",
     description=(
         'Awesome time conversion handling with support for chaining operations. '
     ),

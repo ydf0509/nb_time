@@ -118,8 +118,8 @@ class NbTime:
         except Exception as e:
             date_string = datetime_str  # "2013-05-05 12:30:45 America/Chicago"
             date_parts = date_string.split()
-            parsed_date = dateutil.parser.parse(date_parts[0] + " " + date_parts[1])
-            timezone = dateutil.tz.gettz(date_parts[2])
+            parsed_date = dateutil.parser.parse(' '.join(date_parts[:-1]))
+            timezone = dateutil.tz.gettz(date_parts[-1])
             datetime_obj = parsed_date.replace(tzinfo=timezone)
             return self._build_nb_time(datetime_obj).datetime_obj
 
