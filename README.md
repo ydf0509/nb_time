@@ -2,6 +2,8 @@
 
 # 1 NbTime 介绍
 
+`NbTime("2025-10-01 09:00:00", time_zone='America/Los_Angeles').to_tz('Asia/Shanghai').same_day_zero.get_str()`
+
 ## 1.0 安装 
 
 pip install nb_time

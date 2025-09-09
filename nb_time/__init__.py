@@ -169,7 +169,7 @@ class NbTime:
             except Exception as e:
                 # print(e,type(e))
                 # print(f'尝试使用万能时间字符串解析 {datetimex}')
-                logger.warning(f'parse time str error , {type(e)} , {e}  , will try use  Universal time string parsing')
+                logger.warning(f'warning! formatter: {self.datetime_formatter} cannot parse time str: {datetimex}  , {type(e)} , {e}  , will try use  Universal time string parsing')
                 datetime_obj = self.universal_parse_datetime_str(datetimex)
             # print(repr(datetime_obj))
             if datetime_obj.tzinfo is None:
