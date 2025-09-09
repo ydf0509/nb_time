@@ -15,7 +15,8 @@ extra_requires = {}
 install_requires = [
     'tzlocal',
     'pytz',
-    'pydantic',
+    'arrow'
+    # 'pydantic',
     'python-dateutil',
 
 ]

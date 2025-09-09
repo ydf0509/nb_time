@@ -1,6 +1,8 @@
 import copy
 import functools
 import logging
+import sys
+import threading
 import types
 import typing
 import re
@@ -9,7 +11,9 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
 import pytz
-from pydantic import BaseModel
+import arrow
+
+# from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -23,19 +27,44 @@ def get_localzone_ignore_version():  # python3.9以上不一样.  tzlocal 版本
         return get_localzone().key
 
 
-class DateTimeValue(BaseModel):
-    year: int
-    month: int
-    day: int
-    hour: int = 0
-    minute: int = 0
-    second: int = 0
-    microsecond: int = 0
+# class DateTimeValue(BaseModel):
+#     year: int
+#     month: int
+#     day: int
+#     hour: int = 0
+#     minute: int = 0
+#     second: int = 0
+#     microsecond: int = 0
+
+
+class DateTimeValue:
+    def __init__(self, year, month, day, hour=0, minute=0, second=0, microsecond=0):
+        self.year = year
+        self.month = month
+        self.day = day
+        self.hour = hour
+        self.minute = minute
+        self.second = second
+        self.microsecond = microsecond
+
+    def dict(self):
+        return {
+            'year': self.year,
+            'month': self.month,
+            'day': self.day,
+            'hour': self.hour,
+            'minute': self.minute,
+            'second': self.second,
+            'microsecond': self.microsecond
+        }
 
 
 class TimeInParamError(Exception):
     pass
 
+class ArrowWrap(arrow.Arrow):
+    def to_nb_time(self):
+        return NbTime(self)
 
 class NbTime:
     """ 时间转换，支持链式操作，纯面向对象的的。
@@ -52,13 +81,16 @@ class NbTime:
     FORMATTER_MILLISECOND = "%Y-%m-%d %H:%M:%S.%f %z"
     FORMATTER_DATE = "%Y-%m-%d"
     FORMATTER_TIME = "%H:%M:%S"
+    FORMATTER_ISO = "%Y-%m-%dT%H:%M:%S%z"  # iso8601,全球最标准的时间格式
 
     TIMEZONE_UTC = 'UTC'
     TIMEZONE_EASTERN_7 = 'UTC+7'
     TIMEZONE_EASTERN_8 = 'UTC+8'  # UTC+08:00 这是东八区
     TIMEZONE_E8 = 'Etc/GMT-8'  # 这个也是东八区，这个Etc/GMT是标准的pytz的支持的格式。
     TIMEZONE_ASIA_SHANGHAI = 'Asia/Shanghai'  # 就是东八区.
-    TIMEZONE_TZ_EAST_8 = datetime.timezone(datetime.timedelta(hours=8))
+    TIMEZONE_TZ_EAST_8 = datetime.timezone(datetime.timedelta(hours=8),
+                                           name='UTC+08:00')  # 这种性能比pytz 'Asia/Shanghai' 性能高很多。但pytz可以处理历史夏令时。
+    TIMEZONE_TZ_UTC = datetime.timezone(datetime.timedelta(hours=0), name='UTC+07:00')
 
     default_formatter: str = None
     default_time_zone: str = None
@@ -81,7 +113,8 @@ class NbTime:
     time_zone_str__obj_map = {}
 
     def __init__(self,
-                 datetimex: typing.Union[None, int, float, datetime.datetime, str, 'NbTime', DateTimeValue] = None,
+                 datetimex: typing.Union[
+                     None, int, float, datetime.datetime, str, 'NbTime', DateTimeValue, arrow.Arrow] = None,
                  *,
                  datetime_formatter: str = None,
                  time_zone: typing.Union[str, datetime.tzinfo, None] = None):
@@ -98,7 +131,7 @@ class NbTime:
         self.first_param = datetimex
 
         self.time_zone_str = self.get_time_zone_str(time_zone)
-        self.datetime_formatter = datetime_formatter or self.default_formatter or self.FORMATTER_DATETIME
+        self.datetime_formatter = datetime_formatter or self.default_formatter or self.FORMATTER_ISO
         '''
         将 time_zone 转成 pytz 可以识别的对应时区
         '''
@@ -124,8 +157,9 @@ class NbTime:
             return self._build_nb_time(datetime_obj).datetime_obj
 
     def build_datetime_obj(self, datetimex):
-        if isinstance(datetimex, DateTimeValue):
-            datetime_obj = datetime.datetime(**datetimex.dict(), tzinfo=self.time_zone_obj)
+        if datetimex is None:
+            # print(self.time_zone_obj,type(self.time_zone_obj))
+            datetime_obj = datetime.datetime.now(tz=self.time_zone_obj)
         elif isinstance(datetimex, str):
             # print(self.datetime_formatter)
             if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
@@ -139,7 +173,7 @@ class NbTime:
                 datetime_obj = self.universal_parse_datetime_str(datetimex)
             # print(repr(datetime_obj))
             if datetime_obj.tzinfo is None:
-                if  isinstance(self.time_zone_obj,pytz.BaseTzInfo):
+                if isinstance(self.time_zone_obj, pytz.BaseTzInfo):
                     datetime_obj = self.time_zone_obj.localize(datetime_obj, )
                 else:
                     datetime_obj = datetime_obj.replace(tzinfo=self.time_zone_obj, )
@@ -156,16 +190,19 @@ class NbTime:
             if datetimex >= 10 ** 12:
                 # raise TimeInParamError(
                 #     f'Invalid datetime param: {datetimex}. need seconds,not microseconds')  # 需要传入秒，而不是毫秒
-                datetimex = datetimex /1000.0
+                datetimex = datetimex / 1000.0
             datetime_obj = datetime.datetime.fromtimestamp(datetimex, tz=self.time_zone_obj)  # 时间戳0在windows会出错。
         elif isinstance(datetimex, datetime.datetime):
             datetime_obj = datetimex
             datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
+        elif isinstance(datetimex, DateTimeValue):
+            datetime_obj = datetime.datetime(**datetimex.dict(), tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, NbTime):
             datetime_obj = datetimex.datetime_obj
             datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
-        elif datetimex is None:
-            datetime_obj = datetime.datetime.now(tz=self.time_zone_obj)
+        elif isinstance(datetimex, arrow.Arrow):
+            datetime_obj = datetimex.datetime
+            datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         else:
             raise ValueError('input parameters is not right')
         return datetime_obj
@@ -226,6 +263,7 @@ class NbTime:
         """pytz 不支持 GTM+8  UTC+7 这种时区表示方式
         Etc/GMT-8 就是 GMT+8 代表东8区。
         """
+        # print(time_zone,type(time_zone))
         time_zone0 = time_zone
         if time_zone0 in cls.time_zone_str__obj_map:
             # print('zhijie')
@@ -233,13 +271,21 @@ class NbTime:
 
         if isinstance(time_zone, datetime.tzinfo):
             return time_zone
+
+        # 常见时区字符串转化为内置的timezone类型，比pytz性能高很多。
+        if time_zone in (cls.TIMEZONE_ASIA_SHANGHAI, cls.TIMEZONE_E8, cls.TIMEZONE_EASTERN_8):
+            # print('aaaa')
+            return cls.TIMEZONE_TZ_EAST_8
+        if time_zone in (cls.TIMEZONE_UTC, 'UTC+0'):
+            return cls.TIMEZONE_TZ_UTC
+
         if 'Etc/GMT' in time_zone:
             return pytz.timezone(time_zone)
-        # print(time_zone)
+        # print(time_zone,type(time_zone))
         time_zone = cls._utc_to_etc(time_zone)
         # print(time_zone)
         # pytz_timezone_xialinshi = pytz.timezone(time_zone)
-        pytz_timezone =pytz.timezone(time_zone,)
+        pytz_timezone = pytz.timezone(time_zone, )
 
         # print(pytz_timezone)
         # # UTC 负时区对应的 pytz 可以识别的时区
@@ -270,7 +316,11 @@ class NbTime:
         return self.datetime_obj.strftime(self.FORMATTER_DATE)
 
     def get_str(self, formatter=None):
+        # print(self.datetime_formatter)
         return self.datetime_obj.strftime(formatter or self.datetime_formatter)
+
+    def fast_get_str_formatter_datetime_no_zone(self):
+        return f'{self.datetime_obj.year:04d}-{self.datetime_obj.month:02d}-{self.datetime_obj.day:02d} {self.datetime_obj.hour:02d}:{self.datetime_obj.minute:02d}:{self.datetime_obj.second:02d}'
 
     @property
     def timestamp(self) -> float:
@@ -298,6 +348,29 @@ class NbTime:
     def __repr__(self) -> str:
         return f'<NbTime [{self.datetime_str}] ({self.time_zone_str})>'
 
+    def humanize(self)->str:
+        return self.arrow.humanize()
+
+    def to_arrow(self)->ArrowWrap:
+        # return arrow.get(self.datetime_obj)
+        return ArrowWrap(year=self.datetime_obj.year, month=self.datetime_obj.month, day=self.datetime_obj.day,
+                         hour=self.datetime_obj.hour,minute=self.datetime_obj.minute,second=self.datetime_obj.second,
+                         microsecond=self.datetime_obj.microsecond,
+                         tzinfo=self.time_zone_str)
+
+    @property
+    def arrow(self) -> ArrowWrap:
+        if getattr(self, '_arrow_obj', None) is None:
+            self._arrow_obj = self.to_arrow()
+        return self._arrow_obj
+
+    def isoformat(self, timespec: typing.Literal['seconds', 'milliseconds', 'microseconds'] = 'seconds') -> str:
+        """
+        返回 ISO 8601 格式字符串
+        :param timespec: 'seconds', 'milliseconds', 'microseconds'
+        """
+        return self.datetime_obj.isoformat(timespec=timespec)
+
     def __call__(self) -> datetime.datetime:
         return self.datetime_obj
 
@@ -308,10 +381,10 @@ class NbTime:
         return self.clone()
 
     def shift(self, years=0, months=0, days=0, leapdays=0, weeks=0,
-                 hours=0, minutes=0, seconds=0, microseconds=0, ) -> 'NbTime':
+              hours=0, minutes=0, seconds=0, microseconds=0, ) -> 'NbTime':
         relativedeltax = relativedelta(years=years, months=months, days=days, leapdays=leapdays, weeks=weeks,
-                                                    hours=hours, minutes=minutes, seconds=seconds,
-                                                    microseconds=microseconds, )
+                                       hours=hours, minutes=minutes, seconds=seconds,
+                                       microseconds=microseconds, )
         new_date = self.datetime_obj + relativedeltax
         # seconds_delta = seconds + minutes * 60 + hours * 3600 + days * 86400 + weeks * 86400 * 7
         return self._build_nb_time(new_date, )
@@ -338,6 +411,12 @@ class NbTime:
         init_params['time_zone'] = time_zone
         return self.__class__(self.timestamp, **init_params)
 
+    def to_utc(self):
+        return self.to_tz(self.TIMEZONE_UTC)
+
+    def to_utc8(self):
+        return self.to_tz(self.TIMEZONE_E8)
+
     @property
     def today_zero(self) -> 'NbTime':
         now = datetime.datetime.now(tz=self.time_zone_obj)
@@ -358,7 +437,7 @@ class NbTime:
         return self.today_zero.timestamp
 
     @property
-    def same_day_zero(self)  -> 'NbTime':
+    def same_day_zero(self) -> 'NbTime':
         """
         获取时间对象对应的当天的该对象时区的0点的 NbTime对象
         :return:
@@ -415,6 +494,49 @@ class ShanghaiNbTime(NbTime):
     default_formatter = NbTime.FORMATTER_DATETIME_NO_ZONE
 
 
+class NowTimeStrCache:
+    # 生成100万次当前时间字符串%Y-%m-%d %H:%M:%S仅需0.4秒.
+    # 全局变量，用于存储缓存的时间字符串和对应的整秒时间戳
+    _cached_time_str: typing.Optional[str] = None
+    _cached_time_second: int = 0
+
+    # 为了线程安全，使用锁。在极高并发下，锁的开销远小于每毫秒都进行时间格式化。
+    _time_cache_lock = threading.Lock()
+
+    @classmethod
+    def fast_get_now_time_str(cls, timezone_str: str = None) -> str:
+        """
+        获取当前时间字符串，格式为 '%Y-%m-%d %H:%M:%S'。
+        通过缓存机制，同一秒内的多次调用直接返回缓存结果，极大提升性能。
+        适用于对时间精度要求不高（秒级即可）的高并发场景。
+        :return: 格式化后的时间字符串，例如 '2024-06-12 15:30:45'
+        """
+        # timezone_str = timezone_str or FunboostCommonConfig.TIMEZONE
+
+        # 获取当前的整秒时间戳（去掉小数部分）
+        current_second = int(time.time())
+
+        # 如果缓存的时间戳与当前秒数一致，直接返回缓存的字符串。
+        if current_second == cls._cached_time_second:
+            return cls._cached_time_str
+
+        # 如果不一致，说明进入新的一秒，需要重新计算并更新缓存。
+        # 使用锁确保在多线程环境下，只有一个线程会执行更新操作。
+
+        with cls._time_cache_lock:
+            # 双重检查锁定 (Double-Checked Locking)，防止在等待锁的过程中，其他线程已经更新了缓存。
+            if current_second == cls._cached_time_second:
+                return cls._cached_time_str
+
+            # 重新计算时间字符串。这里直接使用 time.strftime，因为它在秒级更新的场景下性能足够。
+            # 我们不需要像 Funboost 那样为每一毫秒的调用都去做查表优化。
+            now = datetime.datetime.now(tz=pytz.timezone(timezone_str))
+            cls._cached_time_str = now.strftime('%Y-%m-%d %H:%M:%S', )
+            cls._cached_time_second = current_second
+
+        return cls._cached_time_str
+
+
 if __name__ == '__main__':
     import nb_log
 
@@ -433,7 +555,7 @@ if __name__ == '__main__':
     print(NbTime(time_zone='UTC+7').time_zone_obj)
 
     print(NbTime.get_timezone_offset('Asia/Shanghai'))
-    NbTime.set_default_formatter(NbTime.FORMATTER_MILLISECOND)
+    # NbTime.set_default_formatter(NbTime.FORMATTER_MILLISECOND)
     NbTime.set_default_time_zone('UTC+8')
 
     # print(NbTime('2023-05-06 12:12:12'))
@@ -467,8 +589,9 @@ if __name__ == '__main__':
     )
 
     print(NbTime('2024-02-29 07:40:34', time_zone='UTC+7'))
-    print(NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+7'), time_zone='UTC+8').datetime_str)
-    print(NbTime('2024-02-29 07:40:34', time_zone='UTC+7').to_tz('UTC+8').datetime_str)
+    print(NbTime(NbTime('2024-02-29 07:40:34', time_zone='UTC+7'), time_zone='UTC+8',
+                 datetime_formatter=NbTime.FORMATTER_ISO).datetime_str)
+    print(NbTime('2024-02-29 07:40:34', time_zone='UTC+7').to_tz('UTC+8').to_tz('utc').to_utc().datetime_str)
 
     print(NbTime().get_str('%Y%m%d'))
     print(NbTime().today_zero)
@@ -498,10 +621,39 @@ if __name__ == '__main__':
     print(NbTime('20221206 1:2:3'))
     print(NbTime('Fri Jul 19 06:38:27 2024'))
     print(NbTime('2013-05-05 12:30:45 America/Chicago'))
+    print(NbTime('2013-05-05 12:30:45 America/Chicago').isoformat())
+    print(NbTime('Jun 12 2024 10:30AM'))
 
-    # print()
-    # for i in range(1000000):
-    #     # ShanghaiNbTime().get_str()
-    #     ShanghaiNbTime()
-    #     # datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
-    # print()
+    import arrow
+
+    # print(arrow.get("tomorrow at 3pm")) # 报错
+    # print(NbTime("tomorrow at 3pm"))
+    print(arrow.now().shift(hours=-3).shift(days=6).humanize())
+    print(arrow.now().shift(hours=-3).shift(days=6))
+
+    print(NbTime('2025-09-29 10:01:02').humanize())
+    print(NbTime('2025-09-29 10:01:02').isoformat('microseconds'))
+
+    print(NbTime(arrow.now(tz='utc+7')))
+
+    print(NbTime().arrow.floor('hour'))
+    print(NbTime().arrow.floor('day'))
+    print(NbTime().arrow.ceil('day').to_nb_time().timestamp) # nb_time 和 arrow 之间 无限链式转化
+
+    print()
+    for i in range(1000000):
+        # ShanghaiNbTime(time_zone='Asia/Shanghai').get_str()
+        # ShanghaiNbTime(time_zone='UTC+8').get_str()
+        # datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # NbTime(time_zone='Asia/Shanghai') # 3秒100万次
+        arrow.now(tz='Asia/Shanghai') # 20秒100万次
+        # datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+        # NbTime().fast_get_str_formatter_datetime_no_zone()
+        # get_now_time_str_by_tz()
+
+        # ts = 1717567890  # 示例时间戳
+        # time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
+
+        # datetime.datetime.now()#.strftime("%Y-%m-%d %H:%M:%S")
+        # NowTimeStrCache.fast_get_now_time_str('Asia/Shanghai')
+    print()
