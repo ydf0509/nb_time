@@ -15,10 +15,9 @@ extra_requires = {}
 install_requires = [
     'tzlocal',
     'pytz',
-    'arrow'
+    'arrow',
     # 'pydantic',
     'python-dateutil',
-
 ]
 
 # if os.name == 'nt':
