@@ -1,6 +1,7 @@
 import copy
 import functools
 import logging
+import pickle
 import sys
 import threading
 import types
@@ -126,6 +127,9 @@ class NbTime:
         # init_params = copy.copy(locals())
         # init_params.pop('self')
         # init_params.pop('datetimex')
+
+        self._raw_in_params = {'datetimex':datetimex,'datetime_formatter':datetime_formatter,'time_zone':time_zone}
+ 
         init_params = {'datetime_formatter': datetime_formatter, 'time_zone': time_zone}
         self.init_params = init_params
         self.first_param = datetimex
@@ -364,7 +368,7 @@ class NbTime:
             self._arrow_obj = self.to_arrow()
         return self._arrow_obj
 
-    def isoformat(self, timespec: typing.Literal['seconds', 'milliseconds', 'microseconds'] = 'seconds') -> str:
+    def isoformat(self, timespec: str = 'seconds') -> str:
         """
         返回 ISO 8601 格式字符串
         :param timespec: 'seconds', 'milliseconds', 'microseconds'
@@ -380,6 +384,16 @@ class NbTime:
     def __copy__(self):
         return self.clone()
 
+    
+    # def __getstate__(self):
+    #     # 自定义序列化时保存的状态
+    #     state = self._raw_in_params
+    #     return state
+    
+    # def __setstate__(self, state):
+    #     new_self = self.__class__(**state)
+    #     self.__dict__.update(new_self.__dict__)
+    
     def shift(self, years=0, months=0, days=0, leapdays=0, weeks=0,
               hours=0, minutes=0, seconds=0, microseconds=0, ) -> 'NbTime':
         relativedeltax = relativedelta(years=years, months=months, days=days, leapdays=leapdays, weeks=weeks,
@@ -537,6 +551,10 @@ class NowTimeStrCache:
         return cls._cached_time_str
 
 
+
+
+
+
 if __name__ == '__main__':
     import nb_log
 
@@ -639,6 +657,14 @@ if __name__ == '__main__':
     print(NbTime().arrow.floor('hour'))
     print(NbTime().arrow.floor('day'))
     print(NbTime().arrow.ceil('day').to_nb_time().timestamp) # nb_time 和 arrow 之间 无限链式转化
+
+
+    nbt6 = NbTime()
+
+    nbt6_pickled =pickle.dumps(nbt6)
+    print(nbt6_pickled)
+    nbt6_new = pickle.loads(nbt6_pickled)
+    print(nbt6_new)
 
     print()
     for i in range(1000000):
