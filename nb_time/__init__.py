@@ -198,7 +198,11 @@ class NbTime:
             datetime_obj = datetime.datetime.fromtimestamp(datetimex, tz=self.time_zone_obj)  # 时间戳0在windows会出错。
         elif isinstance(datetimex, datetime.datetime):
             datetime_obj = datetimex
-            datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
+            if datetimex.tzinfo is None:
+                # 视为 self.time_zone_obj 时区的时间
+                datetime_obj = self.time_zone_obj.localize(datetimex) if isinstance(self.time_zone_obj, pytz.BaseTzInfo) else datetimex.replace(tzinfo=self.time_zone_obj)
+            else:
+                datetime_obj = datetimex.astimezone(self.time_zone_obj)
         elif isinstance(datetimex, DateTimeValue):
             datetime_obj = datetime.datetime(**datetimex.dict(), tzinfo=self.time_zone_obj)
         elif isinstance(datetimex, NbTime):
@@ -551,7 +555,14 @@ class NowTimeStrCache:
         return cls._cached_time_str
 
 
-
+def calculate_age(birth_date,datetime_formatter='%Y-%m-%d'):
+    birth_date = NbTime(birth_date,datetime_formatter=datetime_formatter)
+    now = NbTime()
+    age = now.datetime_obj.year - birth_date.datetime_obj.year
+    # 如果今年生日还没到，减一岁
+    if (now.datetime_obj.month, now.datetime_obj.day) < (birth_date.datetime_obj.month, birth_date.datetime_obj.day):
+        age -= 1
+    return age
 
 
 
@@ -583,6 +594,7 @@ if __name__ == '__main__':
     print(NbTime('2024-02-26 15:58:21', datetime_formatter=NbTime.FORMATTER_DATETIME_NO_ZONE,
                  time_zone=NbTime.TIMEZONE_EASTERN_7).datetime)
     print(NbTime(DateTimeValue(year=2022, month=5, day=9, hour=6), time_zone='UTC+7'))
+    print(NbTime(datetime.datetime(2022, 5, 9, 6, 0, 0, )))
 
     print(NbTime(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')), time_zone='UTC+8'))
     print(NbTime().shift(months=1).shift(hours=-1))
@@ -665,6 +677,11 @@ if __name__ == '__main__':
     print(nbt6_pickled)
     nbt6_new = pickle.loads(nbt6_pickled)
     print(nbt6_new)
+
+    print(calculate_age('1990-11-01',datetime_formatter='%Y-%m-%d'))
+    print(calculate_age('19901101',datetime_formatter='%Y%m%d'))
+    print(calculate_age('1990-10-01',datetime_formatter='%Y-%m-%d'))
+    print(calculate_age('19901001',datetime_formatter='%Y%m%d'))
 
     print()
     for i in range(1000000):

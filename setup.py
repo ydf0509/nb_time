@@ -26,7 +26,7 @@ install_requires = [
 print(f'nb_time install_requires:{install_requires}')
 setup(
     name='nb_time',  #
-    version="2.7",
+    version="2.8",
     description=(
         'Awesome time conversion handling with support for chaining operations. '
     ),
@@ -40,7 +40,8 @@ setup(
     author_email='ydf0509@sohu.com',
     maintainer='ydf',
     maintainer_email='ydf0509@sohu.com',
-    license='BSD License',
+    # license='BSD License',
+    license='BSD-3-Clause',
     packages=find_packages(),
     include_package_data=True,
     platforms=["all"],
@@ -48,7 +49,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Operating System :: OS Independent',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        # 'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Programming Language :: Python :: Implementation',
         'Programming Language :: Python :: 3',
@@ -64,7 +65,7 @@ python setup.py sdist upload -r pypi
 
 
 
-python setup.py sdist ; python -m  twine upload dist/nb_time-0.1.tar.gz
+python setup.py sdist && python -m  twine upload dist/nb_time-0.1.tar.gz
 
 twine upload dist/*
 
